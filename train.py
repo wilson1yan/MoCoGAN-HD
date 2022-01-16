@@ -9,6 +9,7 @@ In no event will Snap Inc. be liable for any damages or losses of any kind arisi
 import time
 import os
 
+import numpy as np
 import torch
 import torch.multiprocessing as mp
 import torch.distributed as dist
@@ -18,6 +19,10 @@ from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from util.visualizer import Visualizer
 from models.models import create_model
+
+def compute_total_params(model):
+    total_params = sum([np.prod(p.shape) for p in model.parameters() if p.requires_grad])
+    return total_params
 
 
 def main():
@@ -70,6 +75,9 @@ def main_worker(gpu, ngpus_per_node, args):
         raise NotImplementedError("Only DistributedDataParallel is supported.")
 
     modelG, modelD_img, modelD_3d = create_model(args)
+    print('G params:', compute_total_params(modelG))
+    print('D_img params:', compute_total_params(modelD_img))
+    print('D_3d params:', compute_total_params(modelD_3d))
 
     data_loader = CreateDataLoader(args)
     dataset = data_loader.load_data()

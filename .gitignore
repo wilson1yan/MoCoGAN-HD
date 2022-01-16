@@ -4,3 +4,5 @@
 results/
 .vscode
 __pycache__
+checkpoints/
+pca_stats/

@@ -20,7 +20,7 @@ class TrainOptions(BaseOptions):
             help='frequency of showing training results on screen')
         self.parser.add_argument('--print_freq',
                                  type=int,
-                                 default=5,
+                                 default=10,
                                  help='frequency of priting training results')
         self.parser.add_argument('--save_latest_freq',
                                  type=int,
@@ -28,7 +28,7 @@ class TrainOptions(BaseOptions):
                                  help='frequency of saving the latest results')
         self.parser.add_argument('--save_epoch_freq',
                                  type=int,
-                                 default=1,
+                                 default=5,
                                  help='frequency of saving checkpoints')
 
         # optimizer

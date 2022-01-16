@@ -73,11 +73,11 @@ class BaseOptions():
             help='the weight for calculating residual in RNN')
         self.parser.add_argument('--h_dim',
                                  type=int,
-                                 default=384,
+                                 default=48,
                                  help='hidden dimension for RNN')
         self.parser.add_argument('--n_pca',
                                  type=int,
-                                 default=384,
+                                 default=48,
                                  help='number of pca components')
         self.initialized = True
 
