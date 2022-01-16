@@ -8,13 +8,14 @@ In no event will Snap Inc. be liable for any damages or losses of any kind arisi
 """
 import torch.utils.data
 
-from .video_dataset import VideoDataset
+from .video_dataset import VideoDataset, HDF5Dataset
 
 
 class VideoDatasetDataLoader():
     def __init__(self, opt):
         self.opt = opt
-        dataset = VideoDataset(opt)
+        # dataset = VideoDataset(opt)
+        dataset = HDF5Dataset(opt)
         self.dataset = dataset
 
         if opt.distributed:

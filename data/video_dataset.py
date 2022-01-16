@@ -14,6 +14,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data as data
+import h5py
 
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG']
 
@@ -28,6 +29,94 @@ def preprocess(image):
     img = np.transpose(img, (2, 0, 1))
     img = torch.from_numpy(img)
     return img
+
+
+import math
+import torch.nn.functional as F
+def preprocess(video, resolution):
+    # video: THWC, {0, ..., 255}
+    video = video.permute(0, 3, 1, 2).float() # TCHW
+    t, c, h, w = video.shape
+
+    # scale shorter side to resolution
+    scale = resolution / min(h, w)
+    if h < w:
+        target_size = (resolution, math.ceil(w * scale))
+    else:
+        target_size = (math.ceil(h * scale), resolution)
+    video = F.interpolate(video, size=target_size, mode='bilinear',
+                          align_corners=False)
+    
+    scale = tuple([t / r for t, r in zip(target_size, (h, w))])
+
+    # center crop
+    t, c, h, w = video.shape
+    w_start = (w - resolution) // 2
+    h_start = (h - resolution) // 2
+    video = video[:, :, h_start:h_start + resolution, w_start:w_start + resolution]
+
+    video = 2 * video / 255. - 1
+
+    return video
+
+    
+class HDF5Dataset(data.Dataset):
+    """ Generic dataset for data stored in h5py as uint8 numpy arrays.
+    Reads videos in {0, ..., 255} and returns in range [-0.5, 0.5] """
+    def __init__(self, opt):
+        """
+        Args:
+            args.data_path: path to the pickled data file with the
+                following format:
+                {
+                    'train_data': [B, H, W, 3] np.uint8,
+                    'train_idx': [B], np.int64 (start indexes for each video)
+                    'test_data': [B', H, W, 3] np.uint8,
+                    'test_idx': [B'], np.int64
+                }
+            args.sequence_length: length of extracted video sequences
+        """
+        super().__init__()
+        self.opt = opt
+        self.sequence_length = opt.n_frames_G * opt.time_step
+        self.resolution = opt.video_frame_size
+        self.frame_skip = opt.time_step
+
+        # read in data
+        self.data_file = opt.dataroot
+        self.data = h5py.File(self.data_file, 'r')
+        self._images = self.data[f'train_data']
+        self._idx = self.data[f'train_idx'][:]
+
+        self.size = len(self._idx)
+
+    def __getstate__(self):
+        state = self.__dict__
+        state['data'].close()
+        state['data'] = None
+        state['_images'] = None
+
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.data = h5py.File(self.data_file, 'r')
+        self._images = self.data[f'train_data']
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, idx):
+        start = self._idx[idx]
+        end = self._idx[idx + 1] if idx < len(self._idx) - 1 else len(self._images)
+        if end - start > self.sequence_length:
+            start = start + np.random.randint(low=0, high=end - start - self.sequence_length)
+        assert start < start + self.sequence_length <= end, f'{start}, {end}'
+        video = torch.tensor(self._images[start:start + self.sequence_length]) 
+        video = video[::self.frame_skip]
+        video = preprocess(video, self.resolution)
+
+        return {'real_img': video}
 
 
 class VideoDataset(data.Dataset):
