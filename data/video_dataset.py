@@ -92,7 +92,7 @@ class HDF5Dataset(data.Dataset):
 
     def __getstate__(self):
         state = self.__dict__
-        state['data'].close()
+        #state['data'].close()
         state['data'] = None
         state['_images'] = None
 
