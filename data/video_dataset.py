@@ -6,7 +6,8 @@ Such code is provided as-is, without warranty of any kind, express or implied, i
 title, fitness for a particular purpose, non-infringement, or that such code is free of defects, errors or viruses.
 In no event will Snap Inc. be liable for any damages or losses of any kind arising from the sample code or your use thereof.
 """
-import os.path
+import os.path as osp
+import json
 import random
 
 from PIL import Image
@@ -15,6 +16,9 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 import h5py
+import warnings
+import pickle
+from torchvision.datasets.video_utils import VideoClips
 
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG']
 
@@ -58,6 +62,37 @@ def preprocess(video, resolution):
     video = 2 * video / 255. - 1
 
     return video
+
+    
+class SomethingSomething(data.Dataset):
+    def __init__(self, opt):
+        super().__init__()
+        self.opt = opt
+        self.resolution = opt.video_frame_size
+        self.sequence_length = opt.n_frames_G
+
+        self.root = opt.dataroot
+        video_ids = json.load(open(osp.join(self.root, 'train_subset.json'), 'r'))
+        to_exclude = json.load(open(osp.join(self.root, 'exclude.json'), 'r'))
+        to_exclude = set(to_exclude)
+        video_ids = list(filter(lambda vid: vid not in to_exclude, video_ids))
+
+        files = [osp.join(self.root, '20bn-something-something-v2', f'{vid}.webm')
+                 for vid in video_ids]
+        
+        warnings.filterwarnings('ignore')
+        cache_file = osp.join(self.root, 'train_metadata_4.pkl')
+        metadata = pickle.load(open(cache_file, 'rb'))
+        clips = VideoClips(files, self.sequence_length, _precomputed_metadata=metadata)
+        self._clips = clips
+    
+    def __len__(self):
+        return self._clips.num_clips()
+    
+    def __getitem__(self, idx):
+        video = self._clips.get_clip(idx)[0]
+        video = preprocess(video, self.resolution)
+        return {'real_img': video}
 
     
 class HDF5Dataset(data.Dataset):
