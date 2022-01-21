@@ -277,10 +277,12 @@ class Generator(nn.Module):
                  modelR=None,
                  channel_multiplier=2,
                  blur_kernel=[1, 3, 3, 1],
-                 lr_mlp=0.01):
+                 lr_mlp=0.01,
+                 n_conv=1):
         super().__init__()
         self.size = size
         self.style_dim = style_dim
+        self.total_conv = n_conv + 1
         self.modelR = modelR
         layers = [PixelNorm()]
         for i in range(n_mlp):
@@ -340,12 +342,13 @@ class Generator(nn.Module):
                     blur_kernel=blur_kernel,
                 ))
 
-            self.convs.append(
-                StyledConv(out_channel,
-                           out_channel,
-                           3,
-                           style_dim,
-                           blur_kernel=blur_kernel))
+            for _ in range(n_conv):
+                self.convs.append(
+                    StyledConv(out_channel,
+                            out_channel,
+                            3,
+                            style_dim,
+                            blur_kernel=blur_kernel))
 
             self.to_rgbs.append(ToRGB(out_channel, style_dim))
 
@@ -357,7 +360,7 @@ class Generator(nn.Module):
         device = self.input.input.device
         noises = [torch.randn(1, 1, 2**2, 2**2, device=device)]
         for i in range(3, self.log_size + 1):
-            for _ in range(2):
+            for _ in range(self.total_conv):
                 noises.append(torch.randn(1, 1, 2**i, 2**i, device=device))
         return noises
 
@@ -442,23 +445,15 @@ class Generator(nn.Module):
 
         skip = self.to_rgb1(out, latent[:, 1])
 
-        i = 1
-        for conv1, conv2, noise1, noise2, to_rgb in zip(
-                self.convs[::2], self.convs[1::2], noise[1::2], noise[2::2],
-                self.to_rgbs):
-            out = conv1(out,
-                        latent[:, i],
-                        n_frame,
-                        use_noise=use_noise,
-                        noise=noise1)
-            out = conv2(out,
-                        latent[:, i + 1],
-                        n_frame,
-                        use_noise=use_noise,
-                        noise=noise2)
-            skip = to_rgb(out, latent[:, i + 2], skip)
+        for i in range(len(self.to_rgbs)):
+            convs = self.convs[i * self.total_conv:(i + 1) * self.total_conv]
+            noises = noise[1+i * self.total_conv:1+(i+1) * self.total_conv]
+            to_rgb = self.to_rgbs[i]
+            lat = latent[:, 1 + i * self.total_conv:1+(i+1) * self.total_conv]
 
-            i += 2
+            for j, (c, n) in enumerate(zip(convs, noises)):
+                out = c(out, lat[:, j], noise=n)
+            skip = to_rgb(out, latent[:, 1+(i+1)*self.total_conv], skip)
 
         image = skip
 
