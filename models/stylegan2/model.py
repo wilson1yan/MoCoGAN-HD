@@ -452,7 +452,7 @@ class Generator(nn.Module):
             lat = latent[:, 1 + i * self.total_conv:1+(i+1) * self.total_conv]
 
             for j, (c, n) in enumerate(zip(convs, noises)):
-                out = c(out, lat[:, j], noise=n)
+                out = c(out, lat[:, j], n_frame, noise=n)
             skip = to_rgb(out, latent[:, 1+(i+1)*self.total_conv], skip)
 
         image = skip
