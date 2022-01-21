@@ -47,7 +47,7 @@ class BaseOptions():
         self.parser.add_argument(
             '--style_gan_size',
             type=int,
-            default=256,
+            default=64,
             help='spatial size for the output of generator')
         self.parser.add_argument('--n_mlp',
                                  type=int,
@@ -73,11 +73,11 @@ class BaseOptions():
             help='the weight for calculating residual in RNN')
         self.parser.add_argument('--h_dim',
                                  type=int,
-                                 default=48,
+                                 default=384,
                                  help='hidden dimension for RNN')
         self.parser.add_argument('--n_pca',
                                  type=int,
-                                 default=48,
+                                 default=384,
                                  help='number of pca components')
         self.initialized = True
 

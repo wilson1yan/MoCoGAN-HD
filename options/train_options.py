@@ -73,7 +73,7 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument(
             '--video_frame_size',
             type=int,
-            default=128,
+            default=64,
             help='spatial size of video frames for training')
 
         # training setting

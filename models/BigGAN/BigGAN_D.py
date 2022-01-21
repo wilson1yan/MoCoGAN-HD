@@ -99,7 +99,7 @@ def D_arch(ch=32):
 
 class Discriminator(nn.Module):
     def __init__(self,
-                 D_ch=96,
+                 D_ch=256,
                  D_wide=True,
                  resolution=128,
                  D_activation=nn.ReLU(inplace=False),

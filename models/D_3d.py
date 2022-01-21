@@ -54,7 +54,7 @@ def get_norm_layer(norm_type='instance'):
 class MultiscaleDiscriminator(nn.Module):
     def __init__(self,
                  input_nc,
-                 ndf=64,
+                 ndf=128,
                  n_layers=3,
                  n_frames=16,
                  norm_layer=nn.InstanceNorm3d,
@@ -64,7 +64,7 @@ class MultiscaleDiscriminator(nn.Module):
         self.num_D = num_D
         self.n_layers = n_layers
         self.getIntermFeat = getIntermFeat
-        ndf_max = 64
+        ndf_max = 128
 
         for i in range(num_D):
             netD = NLayerDiscriminator(
