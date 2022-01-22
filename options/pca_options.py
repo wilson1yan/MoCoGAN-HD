@@ -22,7 +22,7 @@ class PCAOptions(BaseOptions):
         self.parser.add_argument(
             '--fake_img_size',
             type=int,
-            default=512,
+            default=64,
             help='spatial size for the output of generator')
 
         self.isTrain = False

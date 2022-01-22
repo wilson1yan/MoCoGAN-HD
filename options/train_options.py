@@ -28,7 +28,7 @@ class TrainOptions(BaseOptions):
                                  help='frequency of saving the latest results')
         self.parser.add_argument('--save_epoch_freq',
                                  type=int,
-                                 default=1,
+                                 default=10000,
                                  help='frequency of saving checkpoints')
 
         # optimizer

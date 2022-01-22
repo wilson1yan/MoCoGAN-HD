@@ -139,15 +139,15 @@ def main_worker(gpu, ngpus_per_node, args):
                 save_models(modelG, modelD_img, modelD_3d,
                             args.checkpoints_dir, 'latest')
 
-        if epoch % args.save_epoch_freq == 0 and (
-                not args.multiprocessing_distributed or
-            (args.multiprocessing_distributed
-             and args.rank % ngpus_per_node == 0)):
-            print('saving the model at the end of epoch %d, iters %d' %
-                  (epoch, total_steps))
-            save_models(modelG, modelD_img, modelD_3d, args.checkpoints_dir,
-                        'epoch_' + str(epoch))
-            save_videos(writer, z_fix, modelG, 'epoch_' + str(epoch), args)
+            if total_steps % args.save_epoch_freq == 0 and (
+                    not args.multiprocessing_distributed or
+                (args.multiprocessing_distributed
+                 and args.rank % ngpus_per_node == 0)):
+                print('saving the model at epoch %d, iters %d' %
+                      (epoch, total_steps))
+                save_models(modelG, modelD_img, modelD_3d, args.checkpoints_dir,
+                            'itr_' + str(total_steps))
+                save_videos(writer, z_fix, modelG, 'itr_' + str(total_steps), args)
     if args.rank % ngpus_per_node == 0:
         writer.close()
 
