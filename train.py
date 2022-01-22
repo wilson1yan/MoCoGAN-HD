@@ -139,7 +139,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 save_models(modelG, modelD_img, modelD_3d,
                             args.checkpoints_dir, 'latest')
 
-            if total_steps % args.save_epoch_freq == 0 and (
+            if (total_steps % args.save_epoch_freq == 0 or total_steps == 1) and (
                     not args.multiprocessing_distributed or
                 (args.multiprocessing_distributed
                  and args.rank % ngpus_per_node == 0)):

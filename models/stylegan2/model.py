@@ -278,7 +278,7 @@ class Generator(nn.Module):
                  channel_multiplier=2,
                  blur_kernel=[1, 3, 3, 1],
                  lr_mlp=0.01,
-                 n_conv=1):
+                 n_conv=4):
         super().__init__()
         self.size = size
         self.style_dim = style_dim
@@ -314,7 +314,7 @@ class Generator(nn.Module):
         self.to_rgb1 = ToRGB(self.channels[4], style_dim, upsample=False)
 
         self.log_size = int(math.log(size, 2))
-        self.num_layers = (self.log_size - 2) * 2 + 1
+        self.num_layers = (self.log_size - 2) * self.total_conv + 1
 
         self.convs = nn.ModuleList()
         self.upsamples = nn.ModuleList()
@@ -354,7 +354,7 @@ class Generator(nn.Module):
 
             in_channel = out_channel
 
-        self.n_latent = self.log_size * 2 - 2
+        self.n_latent = self.log_size * self.total_conv - 2
 
     def make_noise(self):
         device = self.input.input.device
@@ -452,7 +452,7 @@ class Generator(nn.Module):
             lat = latent[:, 1 + i * self.total_conv:1+(i+1) * self.total_conv]
 
             for j, (c, n) in enumerate(zip(convs, noises)):
-                out = c(out, lat[:, j], n_frame, noise=n)
+                out = c(out, lat[:, j], n_frame, use_noise=use_noise, noise=n)
             skip = to_rgb(out, latent[:, 1+(i+1)*self.total_conv], skip)
 
         image = skip
