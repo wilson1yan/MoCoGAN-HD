@@ -89,15 +89,18 @@ def create_model(opt):
 
         if opt.load_pretrain_path != 'None' and opt.load_pretrain_epoch > -1:
             opt.checkpoints_dir = opt.load_pretrain_path
-            m_name = '/modelR_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            #m_name = '/modelR_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            m_name = 'modelR_latest.pth'
             ckpt = load_checkpoints(opt.load_pretrain_path + m_name, opt.gpu)
             modelG.module.modelR.load_state_dict(ckpt)
 
-            m_name = '/modelD_img_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            #m_name = '/modelD_img_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            m_name = 'modelD_img_latest.pth'
             ckpt = load_checkpoints(opt.load_pretrain_path + m_name, opt.gpu)
             modelD_img.load_state_dict(ckpt)
 
-            m_name = '/modelD_3d_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            #m_name = '/modelD_3d_epoch_%d.pth' % (opt.load_pretrain_epoch)
+            m_name = 'modelD_3d_latest.pth'
             ckpt = load_checkpoints(opt.load_pretrain_path + m_name, opt.gpu)
             modelD_3d.load_state_dict(ckpt)
         return [modelG, modelD_img, modelD_3d]
